@@ -80,17 +80,22 @@ void TpmUtil::writeOpenSSLKey(const RsaKey &key, const std::string &label)
 	RSA *sslkey = RSA_new();
 	RSAGuard guard(sslkey);
 
-	sslkey->n = BN_bin2bn(
+	//sslkey->n = BN_bin2bn(
+	BIGNUM *n = BN_bin2bn(
 		key.modulus.data(), key.modulus.size(), nullptr
 	);
-	sslkey->e = BN_bin2bn(
+	//sslkey->e = BN_bin2bn(
+	BIGNUM *e = BN_bin2bn(
 		key.exponent.data(), key.exponent.size(), nullptr
 	);
 
-	if( ! sslkey->n || ! sslkey->e )
+	//if( ! sslkey->n || ! sslkey->e )
+	if( ! n || ! e )
 	{
 		throw SysError("converting modulus/exponent to BIGNUM");
 	}
+
+    RSA_set0_key(sslkey, n, e, NULL);
 
 	std::stringstream ss;
 	ss << "opensslkey." << m_key_id.getValue() << "." << label << ".pem";
